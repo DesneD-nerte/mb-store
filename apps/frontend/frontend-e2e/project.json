@@ -1,0 +1,9 @@
+{
+  "name": "mb-store-frontend-e2e",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/frontend/frontend-e2e/src",
+  "implicitDependencies": ["mb-store-frontend"],
+  "// targets": "to see all targets run: nx show project mb-store-frontend-e2e --web",
+  "targets": {}
+}
