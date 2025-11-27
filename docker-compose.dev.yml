@@ -131,12 +131,12 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3002
-      - MONGODB_URI=mongodb://product_service:product_service_password@product-db:27017/product_db?authSource=admin
+      - MONGODB_URI=mongodb://product_service:product_service_password@product-db-mongo:27017/product_db?authSource=admin
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - RABBITMQ_URL=amqp://mb_store:mb_store_password@rabbitmq:5672
     depends_on:
-      product-db:
+      product-db-mongo:
         condition: service_healthy
       redis:
         condition: service_healthy
@@ -145,15 +145,15 @@ services:
     networks:
       - mb-network-dev
 
-  product-db:
+  product-db-mongo:
     image: mongo:7
-    container_name: mb-product-db-dev
+    container_name: mb-product-db-mongo-dev
     environment:
       - MONGO_INITDB_ROOT_USERNAME=product_service
       - MONGO_INITDB_ROOT_PASSWORD=product_service_password
       - MONGO_INITDB_DATABASE=product_db
     volumes:
-      - product-db-data-dev:/data/db
+      - product-db-mongo-data-dev:/data/db
     ports:
       - "27017:27017"
     networks:
@@ -368,6 +368,63 @@ services:
       timeout: 5s
       retries: 5
 
+  # ===========================================
+  # Admin UIs / Dev Tools
+  # ===========================================
+
+  # Redis Insight - Redis GUI
+  redis-insight:
+    image: redis/redisinsight:latest
+    container_name: mb-redis-insight-dev
+    ports:
+      - "5540:5540"
+    volumes:
+      - redis-insight-data-dev:/data
+    depends_on:
+      - redis
+    networks:
+      - mb-network-dev
+
+  # pgAdmin - PostgreSQL GUI (manages all PostgreSQL databases)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: mb-pgadmin-dev
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@domain.com
+      - PGADMIN_DEFAULT_PASSWORD=admin
+      - PGADMIN_CONFIG_SERVER_MODE=False
+    volumes:
+      - pgadmin-data-dev:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    depends_on:
+      - user-db
+      - order-db
+      - payment-db
+      - notification-db
+    networks:
+      - mb-network-dev
+
+  # Mongo Express - MongoDB GUI
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mb-mongo-express-dev
+    environment:
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=false # set true if you want to enable admin access to the all databases
+      - ME_CONFIG_MONGODB_AUTH_DATABASE=product_db
+      - ME_CONFIG_MONGODB_AUTH_USERNAME=product_service
+      - ME_CONFIG_MONGODB_AUTH_PASSWORD=product_service_password
+      - ME_CONFIG_MONGODB_URL=mongodb://product_service:product_service_password@product-db-mongo:27017/product_db?authSource=admin
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin
+    ports:
+      - "8082:8081"
+    depends_on:
+      product-db-mongo:
+        condition: service_healthy
+    networks:
+      - mb-network-dev
+
 # ===========================================
 # Networks
 # ===========================================
@@ -382,8 +439,8 @@ networks:
 volumes:
   user-db-data-dev:
     name: mb-user-db-data-dev
-  product-db-data-dev:
-    name: mb-product-db-data-dev
+  product-db-mongo-data-dev:
+    name: mb-product-db-mongo-data-dev
   order-db-data-dev:
     name: mb-order-db-data-dev
   payment-db-data-dev:
@@ -394,4 +451,8 @@ volumes:
     name: mb-redis-data-dev
   rabbitmq-data-dev:
     name: mb-rabbitmq-data-dev
+  pgadmin-data-dev:
+    name: mb-pgadmin-data-dev
+  redis-insight-data-dev:
+    name: mb-redis-insight-data-dev
 
