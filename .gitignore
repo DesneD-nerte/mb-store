@@ -2,8 +2,12 @@
 .vscode
 .idea
 
+.angular
+
 node_modules
 
 dist
 apps/**/dist
 packages/**/dist
+
+

@@ -52,10 +52,10 @@
       "executor": "@angular/build:dev-server",
       "configurations": {
         "production": {
-          "buildTarget": "frontend:build:production"
+          "buildTarget": "mb-store-frontend:build:production"
         },
         "development": {
-          "buildTarget": "frontend:build:development"
+          "buildTarget": "mb-store-frontend:build:development"
         }
       },
       "defaultConfiguration": "development",
@@ -70,7 +70,7 @@
     "extract-i18n": {
       "executor": "@angular/build:extract-i18n",
       "options": {
-        "buildTarget": "frontend:build"
+        "buildTarget": "mb-store-frontend:build"
       }
     },
     "lint": {

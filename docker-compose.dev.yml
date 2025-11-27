@@ -1,0 +1,397 @@
+version: '3.8'
+
+# Development docker-compose with hot reload support
+# Usage: docker-compose -f docker-compose.dev.yml up
+
+services:
+  # ===========================================
+  # Frontend (Angular) - Development
+  # ===========================================
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/frontend/Dockerfile.dev
+    container_name: mb-frontend-dev
+    ports:
+      - "4200:4200"
+    volumes:
+      # Mount source code for hot reload
+      - ./apps/frontend/frontend:/app/apps/frontend/frontend
+      - ./packages:/app/packages
+      - ./tsconfig.base.json:/app/tsconfig.base.json
+      # Exclude node_modules to use container's dependencies
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - api-gateway
+    networks:
+      - mb-network-dev
+
+  # ===========================================
+  # API Gateway - Development
+  # ===========================================
+  api-gateway:
+    build:
+      context: .
+      dockerfile: apps/backend/api-gateway/Dockerfile.dev
+    container_name: mb-api-gateway-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/backend/api-gateway:/app/apps/backend/api-gateway
+      - ./packages:/app/packages
+      - ./tsconfig.base.json:/app/tsconfig.base.json
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - USER_SERVICE_URL=http://user-service:3001
+      - PRODUCT_SERVICE_URL=http://product-service:3002
+      - ORDER_SERVICE_URL=http://order-service:3003
+      - PAYMENT_SERVICE_URL=http://payment-service:3004
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3005
+    depends_on:
+      - redis
+    networks:
+      - mb-network-dev
+
+  # ===========================================
+  # User Service - Development
+  # ===========================================
+  user-service:
+    build:
+      context: .
+      dockerfile: apps/backend/user-service/Dockerfile.dev
+    container_name: mb-user-service-dev
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./apps/backend/user-service:/app/apps/backend/user-service
+      - ./packages:/app/packages
+      - ./tsconfig.base.json:/app/tsconfig.base.json
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3001
+      - DATABASE_HOST=user-db
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=user_db
+      - DATABASE_USER=user_service
+      - DATABASE_PASSWORD=user_service_password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RABBITMQ_URL=amqp://mb_store:mb_store_password@rabbitmq:5672
+    depends_on:
+      user-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - mb-network-dev
+
+  user-db:
+    image: postgres:16-alpine
+    container_name: mb-user-db-dev
+    environment:
+      - POSTGRES_DB=user_db
+      - POSTGRES_USER=user_service
+      - POSTGRES_PASSWORD=user_service_password
+    volumes:
+      - user-db-data-dev:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - mb-network-dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user_service -d user_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================
+  # Product Service - Development
+  # ===========================================
+  product-service:
+    build:
+      context: .
+      dockerfile: apps/backend/product-service/Dockerfile.dev
+    container_name: mb-product-service-dev
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./apps/backend/product-service:/app/apps/backend/product-service
+      - ./packages:/app/packages
+      - ./tsconfig.base.json:/app/tsconfig.base.json
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - MONGODB_URI=mongodb://product_service:product_service_password@product-db:27017/product_db?authSource=admin
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RABBITMQ_URL=amqp://mb_store:mb_store_password@rabbitmq:5672
+    depends_on:
+      product-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - mb-network-dev
+
+  product-db:
+    image: mongo:7
+    container_name: mb-product-db-dev
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=product_service
+      - MONGO_INITDB_ROOT_PASSWORD=product_service_password
+      - MONGO_INITDB_DATABASE=product_db
+    volumes:
+      - product-db-data-dev:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - mb-network-dev
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================
+  # Order Service - Development
+  # ===========================================
+  order-service:
+    build:
+      context: .
+      dockerfile: apps/backend/order-service/Dockerfile.dev
+    container_name: mb-order-service-dev
+    ports:
+      - "3003:3003"
+    volumes:
+      - ./apps/backend/order-service:/app/apps/backend/order-service
+      - ./packages:/app/packages
+      - ./tsconfig.base.json:/app/tsconfig.base.json
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - DATABASE_HOST=order-db
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=order_db
+      - DATABASE_USER=order_service
+      - DATABASE_PASSWORD=order_service_password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RABBITMQ_URL=amqp://mb_store:mb_store_password@rabbitmq:5672
+    depends_on:
+      order-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - mb-network-dev
+
+  order-db:
+    image: postgres:16-alpine
+    container_name: mb-order-db-dev
+    environment:
+      - POSTGRES_DB=order_db
+      - POSTGRES_USER=order_service
+      - POSTGRES_PASSWORD=order_service_password
+    volumes:
+      - order-db-data-dev:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    networks:
+      - mb-network-dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U order_service -d order_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================
+  # Payment Service - Development
+  # ===========================================
+  payment-service:
+    build:
+      context: .
+      dockerfile: apps/backend/payment-service/Dockerfile.dev
+    container_name: mb-payment-service-dev
+    ports:
+      - "3004:3004"
+    volumes:
+      - ./apps/backend/payment-service:/app/apps/backend/payment-service
+      - ./packages:/app/packages
+      - ./tsconfig.base.json:/app/tsconfig.base.json
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3004
+      - DATABASE_HOST=payment-db
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=payment_db
+      - DATABASE_USER=payment_service
+      - DATABASE_PASSWORD=payment_service_password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RABBITMQ_URL=amqp://mb_store:mb_store_password@rabbitmq:5672
+    depends_on:
+      payment-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - mb-network-dev
+
+  payment-db:
+    image: postgres:16-alpine
+    container_name: mb-payment-db-dev
+    environment:
+      - POSTGRES_DB=payment_db
+      - POSTGRES_USER=payment_service
+      - POSTGRES_PASSWORD=payment_service_password
+    volumes:
+      - payment-db-data-dev:/var/lib/postgresql/data
+    ports:
+      - "5435:5432"
+    networks:
+      - mb-network-dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U payment_service -d payment_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================
+  # Notification Service - Development
+  # ===========================================
+  notification-service:
+    build:
+      context: .
+      dockerfile: apps/backend/notification-service/Dockerfile.dev
+    container_name: mb-notification-service-dev
+    ports:
+      - "3005:3005"
+    volumes:
+      - ./apps/backend/notification-service:/app/apps/backend/notification-service
+      - ./packages:/app/packages
+      - ./tsconfig.base.json:/app/tsconfig.base.json
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=3005
+      - DATABASE_HOST=notification-db
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=notification_db
+      - DATABASE_USER=notification_service
+      - DATABASE_PASSWORD=notification_service_password
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - RABBITMQ_URL=amqp://mb_store:mb_store_password@rabbitmq:5672
+    depends_on:
+      notification-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - mb-network-dev
+
+  notification-db:
+    image: postgres:16-alpine
+    container_name: mb-notification-db-dev
+    environment:
+      - POSTGRES_DB=notification_db
+      - POSTGRES_USER=notification_service
+      - POSTGRES_PASSWORD=notification_service_password
+    volumes:
+      - notification-db-data-dev:/var/lib/postgresql/data
+    ports:
+      - "5436:5432"
+    networks:
+      - mb-network-dev
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notification_service -d notification_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================
+  # Shared Infrastructure
+  # ===========================================
+  
+  redis:
+    image: redis:7-alpine
+    container_name: mb-redis-dev
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data-dev:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - mb-network-dev
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: mb-rabbitmq-dev
+    environment:
+      - RABBITMQ_DEFAULT_USER=mb_store
+      - RABBITMQ_DEFAULT_PASS=mb_store_password
+    volumes:
+      - rabbitmq-data-dev:/var/lib/rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - mb-network-dev
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+# ===========================================
+# Networks
+# ===========================================
+networks:
+  mb-network-dev:
+    driver: bridge
+    name: mb-store-network-dev
+
+# ===========================================
+# Volumes
+# ===========================================
+volumes:
+  user-db-data-dev:
+    name: mb-user-db-data-dev
+  product-db-data-dev:
+    name: mb-product-db-data-dev
+  order-db-data-dev:
+    name: mb-order-db-data-dev
+  payment-db-data-dev:
+    name: mb-payment-db-data-dev
+  notification-db-data-dev:
+    name: mb-notification-db-data-dev
+  redis-data-dev:
+    name: mb-redis-data-dev
+  rabbitmq-data-dev:
+    name: mb-rabbitmq-data-dev
+
