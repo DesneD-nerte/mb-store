@@ -1,5 +1,5 @@
 {
-  "name": "notification-service",
+  "name": "mb-store-backend-notification-service",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/backend/notification-service/src",
   "projectType": "application",
@@ -51,15 +51,15 @@
       "defaultConfiguration": "development",
       "dependsOn": ["build"],
       "options": {
-        "buildTarget": "notification-service:build",
+        "buildTarget": "mb-store-backend-notification-service:build",
         "runBuildTargetDependencies": false
       },
       "configurations": {
         "development": {
-          "buildTarget": "notification-service:build:development"
+          "buildTarget": "mb-store-backend-notification-service:build:development"
         },
         "production": {
-          "buildTarget": "notification-service:build:production"
+          "buildTarget": "mb-store-backend-notification-service:build:production"
         }
       }
     },

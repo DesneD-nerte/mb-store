@@ -1,5 +1,5 @@
 {
-  "name": "product-service",
+  "name": "mb-store-backend-product-service",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/backend/product-service/src",
   "projectType": "application",
@@ -51,15 +51,15 @@
       "defaultConfiguration": "development",
       "dependsOn": ["build"],
       "options": {
-        "buildTarget": "product-service:build",
+        "buildTarget": "mb-store-backend-product-service:build",
         "runBuildTargetDependencies": false
       },
       "configurations": {
         "development": {
-          "buildTarget": "product-service:build:development"
+          "buildTarget": "mb-store-backend-product-service:build:development"
         },
         "production": {
-          "buildTarget": "product-service:build:production"
+          "buildTarget": "mb-store-backend-product-service:build:production"
         }
       }
     },

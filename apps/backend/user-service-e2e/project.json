@@ -1,8 +1,8 @@
 {
-  "name": "user-service-e2e",
+  "name": "mb-store-backend-user-service-e2e",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "implicitDependencies": ["user-service"],
+  "implicitDependencies": ["mb-store-backend-user-service"],
   "targets": {
     "e2e": {
       "executor": "@nx/jest:jest",
@@ -11,7 +11,7 @@
         "jestConfig": "apps/backend/user-service-e2e/jest.config.ts",
         "passWithNoTests": true
       },
-      "dependsOn": ["user-service:build", "user-service:serve"]
+      "dependsOn": ["mb-store-backend-user-service:build", "mb-store-backend-user-service:serve"]
     }
   }
 }

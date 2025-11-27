@@ -1,5 +1,5 @@
 {
-  "name": "payment-service",
+  "name": "mb-store-backend-payment-service",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "apps/backend/payment-service/src",
   "projectType": "application",
@@ -51,15 +51,15 @@
       "defaultConfiguration": "development",
       "dependsOn": ["build"],
       "options": {
-        "buildTarget": "payment-service:build",
+        "buildTarget": "mb-store-backend-payment-service:build",
         "runBuildTargetDependencies": false
       },
       "configurations": {
         "development": {
-          "buildTarget": "payment-service:build:development"
+          "buildTarget": "mb-store-backend-payment-service:build:development"
         },
         "production": {
-          "buildTarget": "payment-service:build:production"
+          "buildTarget": "mb-store-backend-payment-service:build:production"
         }
       }
     },

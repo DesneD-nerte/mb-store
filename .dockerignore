@@ -1,0 +1,56 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+dist
+tmp
+out-tsc
+
+# IDE and editors
+.idea
+.vscode
+*.swp
+*.swo
+*~
+
+# Git
+.git
+.gitignore
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Test files
+coverage
+*.spec.ts
+*.test.ts
+**/*-e2e/
+
+# Documentation
+*.md
+!README.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Nx cache
+.nx
+.cache
+
+# Environment files (use docker-compose env instead)
+.env
+.env.*
+!.env.example
+
+# Cursor/AI
+.cursor
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
