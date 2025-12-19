@@ -10,4 +10,5 @@ dist
 apps/**/dist
 packages/**/dist
 
-
+.env.development*
+.env.production*
