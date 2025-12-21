@@ -5,17 +5,18 @@
 
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { AppModule } from './app/app.module';
-import {FastifyAdapter, NestFastifyApplication} from "@nestjs/platform-fastify";
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter());
-  const globalPrefix = 'api';
-  app.setGlobalPrefix(globalPrefix);
-  const port = process.env.PORT || 3001;
-  await app.listen(port, '0.0.0.0');
+  const host = "0.0.0.0";
+  const port = parseInt(process.env.PORT || "3001");
+
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, { transport: Transport.TCP, options: { host, port } });
+  await app.listen();
+
   Logger.log(
-    `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`
+    `🚀 Microservice application is running on: ${host}:${port}`
   );
 }
 

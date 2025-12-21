@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "docker-local-dev": "docker-compose -f docker-compose.dev.yml up -d"
+    "docker-local-dev": "docker-compose -f docker-compose.dev.yml up -d",
+    "docker-local-dev-stop": "docker-compose -f docker-compose.dev.yml down"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +20,8 @@
     "@angular/platform-browser": "~20.3.0",
     "@angular/platform-browser-dynamic": "~20.3.0",
     "@angular/router": "~20.3.0",
+    "@keyv/redis": "^5.1.5",
+    "@nestjs/cache-manager": "^3.0.1",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.0.0",
@@ -28,6 +31,7 @@
     "@nestjs/platform-fastify": "^11.1.8",
     "@nestjs/typeorm": "^11.0.0",
     "axios": "^1.6.0",
+    "cache-manager": "^7.2.7",
     "nx": "^22.0.2",
     "passport": "^0.7.0",
     "passport-local": "^1.0.0",
