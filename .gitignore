@@ -12,3 +12,5 @@ packages/**/dist
 
 .env.development*
 .env.production*
+.claude/worktrees
+.claude/settings.local.json
